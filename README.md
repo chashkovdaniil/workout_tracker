@@ -7,10 +7,11 @@ API для отслеживания тренировок, упражнений �
 - [Установка](#установка)
 - [Переменные окружения](#переменные-окружения)
 - [Запуск](#запуск)
-- [API Endpoints](#api-endpoints)
+- [Документация API (Swagger UI)](#документация-api-swagger-ui)
 - [Развертывание](#развертывание)
 - [Тестирование](#тестирование)
 - [Миграции базы данных](#миграции-базы-данных)
+- [Сборка и публикация Docker-образа](#сборка-и-публикация-docker-образа)
 
 ## Установка
 
@@ -20,12 +21,12 @@ git clone https://github.com/chashkovdaniil/workout_tracker.git
 cd workout_tracker
 ```
 
-2. Создайте виртуальное окружение и активируйте его:
+2. Создайте и активируйте виртуальное окружение:
 ```bash
-python -m venv venv
+python3 -m venv venv 
 source venv/bin/activate  # для Linux/Mac
-# или
-.\venv\Scripts\activate  # для Windows
+# или для Windows:
+# .\venv\Scripts\activate 
 ```
 
 3. Установите зависимости:
@@ -35,68 +36,51 @@ pip install -r requirements.txt
 
 ## Переменные окружения
 
-Создайте файл `.env` в корневой директории проекта со следующими переменными:
+Создайте файл `.env` в корневой директории проекта (`backend/.env`) со следующими переменными. Пример можно найти в `.env.example`.
 
 ```env
-# База данных
+# База данных PostgreSQL
 DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/workout_tracker
 
-# JWT
-SECRET_KEY=your-secret-key-here
+# Настройки JWT токенов
+SECRET_KEY=your_very_secret_strong_key_here_please_change_it
 ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
+ACCESS_TOKEN_EXPIRE_MINUTES=30 
+# REFRESH_TOKEN_EXPIRE_DAYS=7 # Если используется refresh token
 
 # Настройки приложения
 DEBUG=True
 API_V1_STR=/api/v1
-PROJECT_NAME=Workout Tracker
+PROJECT_NAME="Workout Tracker API"
+
+# Для инициализации первого суперпользователя (опционально, если есть скрипт)
+# FIRST_SUPERUSER_EMAIL=admin@example.com
+# FIRST_SUPERUSER_USERNAME=admin
+# FIRST_SUPERUSER_PASSWORD=yoursecurepassword
 ```
+**Примечание:** Убедитесь, что `SECRET_KEY` является криптографически стойким ключом.
 
 ## Запуск
 
-1. Убедитесь, что PostgreSQL запущен и доступен
-2. Примените миграции:
+1. Убедитесь, что PostgreSQL запущен и доступен по `DATABASE_URL`.
+2. Примените миграции базы данных (если они еще не применены):
 ```bash
 alembic upgrade head
 ```
-3. Запустите приложение:
+3. Запустите приложение с помощью Uvicorn:
 ```bash
-uvicorn app.main:app --reload
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
+    Флаг `--reload` удобен для разработки. Для продуктивного режима его следует убрать.
 
-Приложение будет доступно по адресу: http://localhost:8000
+Приложение будет доступно по адресу: [http://localhost:8000](http://localhost:8000)
 
-## API Endpoints
+## Документация API (Swagger UI)
 
-### Аутентификация
+Актуальная интерактивная документация API (Swagger UI) доступна после запуска приложения.
+Перейдите по адресу: [http://localhost:8000/docs](http://localhost:8000/docs)
 
-- `POST /api/v1/auth/register` - Регистрация нового пользователя
-- `POST /api/v1/auth/login` - Вход в систему
-- `GET /api/v1/auth/me` - Получение информации о текущем пользователе
-
-### Типы тренировок
-
-- `POST /api/v1/workout-types/` - Создание нового типа тренировки
-- `GET /api/v1/workout-types/` - Получение списка типов тренировок
-- `GET /api/v1/workout-types/{id}` - Получение типа тренировки по ID
-- `PUT /api/v1/workout-types/{id}` - Обновление типа тренировки
-- `DELETE /api/v1/workout-types/{id}` - Удаление типа тренировки
-
-### Упражнения
-
-- `POST /api/v1/exercises/` - Создание нового упражнения
-- `GET /api/v1/exercises/` - Получение списка упражнений
-- `GET /api/v1/exercises/{id}` - Получение упражнения по ID
-- `PUT /api/v1/exercises/{id}` - Обновление упражнения
-- `DELETE /api/v1/exercises/{id}` - Удаление упражнения
-
-### Тренировки
-
-- `POST /api/v1/workouts/` - Создание новой тренировки
-- `GET /api/v1/workouts/` - Получение списка тренировок
-- `GET /api/v1/workouts/{id}` - Получение тренировки по ID
-- `PUT /api/v1/workouts/{id}` - Обновление тренировки
-- `DELETE /api/v1/workouts/{id}` - Удаление тренировки
+Схема OpenAPI в формате JSON доступна по адресу: [http://localhost:8000/openapi.json](http://localhost:8000/openapi.json)
 
 ## Развертывание
 
@@ -151,4 +135,41 @@ alembic upgrade head
 3. Откат миграции:
 ```bash
 alembic downgrade -1
-``` 
+```
+
+## Сборка и публикация Docker-образа
+
+1. **Сборка образа:**
+
+    Для сборки образа с указанием версии и тега `latest` для платформы `linux/amd64` (замените `YOUR_REGISTRY_PATH` и `VERSION`):
+    ```bash
+    docker buildx build --platform linux/amd64 -t YOUR_REGISTRY_PATH/workout_tracker:VERSION -t YOUR_REGISTRY_PATH/workout_tracker:latest .
+    ```
+    Пример для Yandex Container Registry:
+    ```bash
+    docker buildx build --platform linux/amd64 -t cr.yandex/crphu341kkj0m3tqrul1/workout_tracker:0.0.12 -t cr.yandex/crphu341kkj0m3tqrul1/workout_tracker:latest .
+    ```
+
+2. **Аутентификация в Docker Registry (например, Yandex Container Registry):**
+
+    Если вы еще не аутентифицированы, выполните:
+    ```bash
+    yc container registry configure-docker
+    ```
+    Или используйте Docker-токен (замените `YOUR_IAM_TOKEN`):
+    ```bash
+    docker login --username iam --password YOUR_IAM_TOKEN cr.yandex
+    ```
+
+3. **Отправка (push) образов в Docker Registry:**
+
+    Замените `YOUR_REGISTRY_PATH` и `VERSION`:
+    ```bash
+    docker push YOUR_REGISTRY_PATH/workout_tracker:VERSION
+    docker push YOUR_REGISTRY_PATH/workout_tracker:latest
+    ```
+    Пример для Yandex Container Registry:
+    ```bash
+    docker push cr.yandex/crphu341kkj0m3tqrul1/workout_tracker:0.0.12
+    docker push cr.yandex/crphu341kkj0m3tqrul1/workout_tracker:latest
+    ``` 
