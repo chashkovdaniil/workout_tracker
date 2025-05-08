@@ -1,5 +1,9 @@
 # Environment variables
 .env
+*.key
+*.pem
+!k8s/certs/my-cert.pem
+*.json
 
 # Python
 __pycache__/
@@ -49,6 +53,12 @@ ENV/
 htmlcov/
 .pytest_cache/
 .tox/
+
+# Kubernetes
+k8s/*-secret.yaml
+!k8s/sealed-*.yaml
+k8s/certs/*.pem
+!k8s/certs/my-cert.pem
 
 # OS
 .DS_Store

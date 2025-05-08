@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.core.session import get_db
+from app.database.session import get_db
 from app.models.exercise import Exercise
 from app.schemas import ExerciseCreate, ExerciseResponse, ExerciseUpdate
 from app.models.user import User
@@ -60,7 +60,7 @@ async def create_exercise(
 async def get_exercises(
     skip: int = 0,
     limit: int = 100,
-    muscle_groups: list[str] = None,
+    muscle_groups: list[str] = [],
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
@@ -85,7 +85,8 @@ async def get_exercises(
             name=ex.name,
             description=ex.description,
             muscle_groups=ex.muscle_groups,
-            user_id=ex.user_id
+            user_id=ex.user_id,
+            created_at=ex.created_at
         ) for ex in exercises
     ]
 

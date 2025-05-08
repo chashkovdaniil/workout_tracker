@@ -6,8 +6,17 @@ from app.core.config import settings
 import re
 from fastapi import HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# Rate limiting
+limiter = Limiter(key_func=get_remote_address)
+
+def rate_limit_exceeded_handler(request: Request, exc: Exception):
+    raise HTTPException(status_code=429, detail="Too many requests")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """

@@ -1,4 +1,8 @@
+from typing import Optional
 from pydantic import BaseModel
+
+from app.schemas.workout_exercise import WorkoutExercise, WorkoutExerciseUpdate
+from app.schemas.workout_type import WorkoutTypeResponse
 
 class WorkoutBase(BaseModel):
     """
@@ -10,12 +14,20 @@ class WorkoutBase(BaseModel):
         workout_type_id (int): ID типа тренировки
     """
     name: str
-    description: str | None = None
+    description: Optional[str] = None
     workout_type_id: int
+    exercises: list[WorkoutExercise] = []
 
 class WorkoutCreate(WorkoutBase):
     """Схема для создания тренировки."""
     pass
+
+class WorkoutUpdate(WorkoutBase):
+    """Схема для обновления тренировки."""
+    name: Optional[str] = None
+    description: Optional[str] = None
+    workout_type_id: Optional[int] = None
+    exercises: Optional[list[WorkoutExerciseUpdate]] = None
 
 class WorkoutResponse(WorkoutBase):
     """
@@ -27,6 +39,8 @@ class WorkoutResponse(WorkoutBase):
     """
     id: int
     user_id: int
+    workout_type: WorkoutTypeResponse
+    exercises: list[WorkoutExercise] = []
 
     class Config:
         """Настройки схемы."""

@@ -4,18 +4,29 @@ from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
+from contextlib import asynccontextmanager
 
 from app.routers import workout, workout_type, exercise, auth, user
-from app.core.session import init_db
+from app.database.session import init_db
 from app.core.logging import get_logger
 from app.core.security import limiter, rate_limit_exceeded_handler
 
 logger = get_logger(__name__)
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan event handler."""
+    logger.info("Starting up...")
+    await init_db()
+    logger.info("Database initialized")
+    yield
+    logger.info("Shutting down...")
+
 app = FastAPI(
     title="Workout Tracker API",
     description="API для отслеживания тренировок и упражнений",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 # Настройка rate limiting
@@ -37,13 +48,6 @@ app.include_router(user.router, prefix="/api/v1/users", tags=["users"])
 app.include_router(workout.router, prefix="/api/v1/workouts", tags=["workouts"])
 app.include_router(workout_type.router, prefix="/api/v1/workout-types", tags=["workout types"])
 app.include_router(exercise.router, prefix="/api/v1/exercises", tags=["exercises"])
-
-@app.on_event("startup")
-async def startup_event():
-    """Инициализация при запуске приложения."""
-    logger.info("Starting up...")
-    await init_db()
-    logger.info("Database initialized")
 
 @app.get("/")
 async def root(request: Request):

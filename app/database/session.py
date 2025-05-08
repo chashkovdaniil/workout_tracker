@@ -1,14 +1,14 @@
 import os
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import sessionmaker
 from app.database.base import Base
 from dotenv import load_dotenv
-
+from app.core.config import settings
 # Загрузка переменных окружения из .env файла
 load_dotenv()
 
 # Получение URL базы данных из переменных окружения
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = settings.DATABASE_URL
 
 # Замена postgresql:// на postgresql+asyncpg:// для использования asyncpg
 if DATABASE_URL.startswith("postgresql://"):
@@ -18,7 +18,7 @@ if DATABASE_URL.startswith("postgresql://"):
 engine = create_async_engine(DATABASE_URL, echo=True)
 
 # Создание фабрики асинхронных сессий
-AsyncSessionLocal = sessionmaker(
+AsyncSessionLocal = async_sessionmaker(
     engine, class_=AsyncSession, expire_on_commit=False
 )
 

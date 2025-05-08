@@ -13,6 +13,14 @@ class UserBase(BaseModel):
     email: EmailStr
     username: str
 
+class UserUpdate(UserBase):
+    """
+    Схема для обновления пользователя.
+    """
+    email: Optional[EmailStr] = None
+    username: Optional[str] = None
+    password: Optional[str] = None
+
 class UserCreate(UserBase):
     """
     Схема для создания пользователя.

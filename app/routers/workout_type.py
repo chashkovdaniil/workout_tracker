@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.core.session import get_db
+from app.database.session import get_db
 from app.models.workout_type import WorkoutType
 from app.schemas import WorkoutTypeCreate, WorkoutTypeResponse, WorkoutTypeBase
 from app.models.user import User
@@ -35,7 +35,8 @@ async def create_workout_type(
     db_workout_type = WorkoutType(
         name=workout_type.name,
         description=workout_type.description,
-        user_id=current_user.id
+        user_id=current_user.id,
+        icon_url=workout_type.icon_url
     )
     db.add(db_workout_type)
     await db.commit()
@@ -45,8 +46,7 @@ async def create_workout_type(
         name=db_workout_type.name,
         description=db_workout_type.description,
         created_at=db_workout_type.created_at,
-        icon_url=db_workout_type.icon_url,
-        user_id=db_workout_type.user_id
+        icon_url=db_workout_type.icon_url
     )
 
 @router.get("/", response_model=list[WorkoutTypeResponse])
@@ -68,7 +68,8 @@ async def get_workout_types(
             id=wt.id,
             name=wt.name,
             description=wt.description,
-            user_id=wt.user_id
+            created_at=wt.created_at,
+            icon_url=wt.icon_url
         ) for wt in workout_types
     ]
 
@@ -96,12 +97,11 @@ async def get_workout_type(
         id=workout_type.id,
         name=workout_type.name,
         description=workout_type.description,
-        user_id=workout_type.user_id,
         created_at=workout_type.created_at,
         icon_url=workout_type.icon_url
     )
 
-@router.put("/{workout_type_id}", response_model=WorkoutTypeResponse)
+@router.patch("/{workout_type_id}", response_model=WorkoutTypeResponse)
 async def update_workout_type(
     workout_type_id: int,
     workout_type_in: WorkoutTypeBase,
@@ -148,7 +148,6 @@ async def update_workout_type(
         id=workout_type.id,
         name=workout_type.name,
         description=workout_type.description,
-        user_id=workout_type.user_id,
         created_at=workout_type.created_at,
         icon_url=workout_type.icon_url
     )

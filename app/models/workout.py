@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, Mapped, mapped_column
 from app.database.base import Base
 from datetime import datetime
 
@@ -20,13 +20,13 @@ class Workout(Base):
     """
     __tablename__ = "workouts"
     
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    description = Column(Text, nullable=True)
-    workout_type_id = Column(Integer, ForeignKey("workout_types.id"))
-    user_id = Column(Integer, ForeignKey("users.id"))
-    created_at = Column(DateTime, default=datetime.utcnow)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String, index=True)
+    description: Mapped[str] = mapped_column(Text, nullable=True)
+    workout_type_id: Mapped[int] = mapped_column(Integer, ForeignKey("workout_types.id"))
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     
-    workout_type = relationship("WorkoutType", back_populates="workouts")
-    exercises = relationship("WorkoutExercise", back_populates="workout", cascade="all, delete-orphan")
+    workout_type = relationship("WorkoutType", back_populates="workouts", lazy="joined")
+    exercises = relationship("WorkoutExercise", back_populates="workout", lazy="selectin", cascade="all, delete-orphan")
     user = relationship("User", back_populates="workouts") 

@@ -18,6 +18,14 @@ class WorkoutSetCreate(WorkoutSetBase):
     """Схема для создания подхода."""
     pass
 
+class WorkoutSetUpdate(BaseModel):
+    """Схема для обновления подхода, включая его ID. Все поля опциональны."""
+    id: Optional[int] = None       # ID существующего подхода для обновления
+    set_number: Optional[int] = None
+    weight: Optional[int] = None
+    reps: Optional[int] = None
+    # Если есть другие поля в WorkoutSetBase, которые могут обновляться, добавьте их сюда как Optional
+
 class WorkoutSet(WorkoutSetBase):
     """
     Схема подхода с дополнительными полями.

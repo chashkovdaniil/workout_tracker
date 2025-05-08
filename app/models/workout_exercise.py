@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, ForeignKey, Text
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, Mapped, mapped_column
 from app.database.base import Base
 
 class WorkoutExercise(Base):
@@ -17,11 +17,11 @@ class WorkoutExercise(Base):
     """
     __tablename__ = "workout_exercises"
     
-    id = Column(Integer, primary_key=True, index=True)
-    workout_id = Column(Integer, ForeignKey("workouts.id"))
-    exercise_id = Column(Integer, ForeignKey("exercises.id"))
-    notes = Column(Text, nullable=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    workout_id: Mapped[int] = mapped_column(Integer, ForeignKey("workouts.id"))
+    exercise_id: Mapped[int] = mapped_column(Integer, ForeignKey("exercises.id"))
+    notes: Mapped[str] = mapped_column(Text, nullable=True)
     
     workout = relationship("Workout", back_populates="exercises")
-    exercise = relationship("Exercise", back_populates="workout_exercises")
+    exercise = relationship("Exercise")
     sets = relationship("WorkoutSet", back_populates="workout_exercise", cascade="all, delete-orphan") 

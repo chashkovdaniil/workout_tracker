@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey, ARRAY
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, Mapped, mapped_column
 from app.database.base import Base
 from datetime import datetime
 
@@ -19,12 +19,12 @@ class Exercise(Base):
     """
     __tablename__ = "exercises"
     
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    description = Column(Text, nullable=True)
-    muscle_groups = Column(ARRAY(String), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String, index=True)
+    description: Mapped[str] = mapped_column(Text, nullable=True)
+    muscle_groups: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
     
     workout_exercises = relationship("WorkoutExercise", back_populates="exercise")
     user = relationship("User", back_populates="exercises") 

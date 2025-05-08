@@ -85,6 +85,8 @@ def do_run_migrations(connection):
 async def run_async_migrations() -> None:
     """Запускает миграции в асинхронном режиме."""
     configuration = config.get_section(config.config_ini_section)
+    if configuration is None:
+        configuration = {}
     configuration["sqlalchemy.url"] = get_url()
     
     connectable = AsyncEngine(

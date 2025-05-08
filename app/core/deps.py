@@ -2,23 +2,24 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import select
 from jose import JWTError, jwt
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.core.security import verify_password
-from app.core.session import get_db
+from app.database.session import get_db
 from app.models.user import User
 from app.schemas.user import UserInDB
 from app.core.auth import oauth2_scheme
+from typing import Optional
 
 async def get_current_user(
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     token: str = Depends(oauth2_scheme)
 ) -> User:
     """
     Получение текущего пользователя из JWT токена.
     
     Args:
-        db (Session): Сессия базы данных
+        db (AsyncSession): Сессия базы данных
         token (str): JWT токен
     
     Returns:
@@ -34,10 +35,11 @@ async def get_current_user(
     )
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        username: str = payload.get("sub")
+        print('payload', payload.get("sub"))
+        username: Optional[str] = payload.get("sub")
         if username is None:
             raise credentials_exception
-    except JWTError:
+    except JWTError as e:
         raise credentials_exception
     
     stmt = select(User).filter(User.username == username)
@@ -62,6 +64,7 @@ async def get_current_active_user(
     Raises:
         HTTPException: Если пользователь неактивен
     """
+    ss: str = current_user.email
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user 

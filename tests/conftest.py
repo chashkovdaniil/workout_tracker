@@ -24,7 +24,7 @@ os.environ["ACCESS_TOKEN_EXPIRE_MINUTES"] = "30"
 
 from app.core.config import settings
 from app.database.base import Base
-from app.core.session import get_db
+from app.database.session import get_db
 from app.main import app
 
 # Test database URL - using existing database
@@ -49,7 +49,7 @@ async_session_maker = async_sessionmaker(
 )
 
 # Создаем scoped session с привязкой к текущему task
-async def get_session() -> AsyncSession:
+async def get_session() -> AsyncGenerator[AsyncSession, None]:
     async_session = async_scoped_session(
         async_session_maker,
         scopefunc=current_task,

@@ -1,7 +1,7 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List
-from app.schemas.exercise import Exercise
-from app.schemas.workout_set import WorkoutSet, WorkoutSetCreate
+from app.schemas.exercise import ExerciseBase
+from app.schemas.workout_set import WorkoutSet, WorkoutSetCreate, WorkoutSetUpdate
 
 class WorkoutExerciseBase(BaseModel):
     """
@@ -14,11 +14,16 @@ class WorkoutExerciseBase(BaseModel):
     """
     exercise_id: int
     notes: Optional[str] = None
-    sets: List[WorkoutSetCreate]
+    sets: List[WorkoutSetCreate] = Field(default_factory=list) 
 
 class WorkoutExerciseCreate(WorkoutExerciseBase):
     """Схема для создания упражнения в тренировке."""
     pass
+
+class WorkoutExerciseUpdate(WorkoutExerciseBase):
+    """Схема для обновления упражнения в тренировке."""
+    exercise_id: Optional[int] = None
+    sets: Optional[List[WorkoutSetUpdate]] = Field(default_factory=list)
 
 class WorkoutExercise(WorkoutExerciseBase):
     """
@@ -31,7 +36,7 @@ class WorkoutExercise(WorkoutExerciseBase):
     """
     id: int
     workout_id: int
-    sets: List[WorkoutSet]
-
+    sets: List[WorkoutSet] = Field(default_factory=list)
+    exercise: ExerciseBase
     class Config:
         from_attributes = True 
